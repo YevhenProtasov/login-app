@@ -1,56 +1,25 @@
 import React, { useContext, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Formik, Form, Field } from 'formik';
 import cn from 'classnames';
 import { AuthContext } from '../components/AuthContext.jsx';
 import { usePageError } from '../hooks/usePageError.js';
 import validateEmail from '../utils/validation/validateEmail.js';
-import validatePassword from '../utils/validation/validatePassword.js';
+import { EmailSentMessage } from '../components/auth/ResetPassword/EmailSentMessage.jsx';
+import { CreateNewPassword } from '../components/auth/ResetPassword/CreateNewPassword.jsx';
 
-export const LoginPage = () => {
-  const navigate = useNavigate();
-  const [isEmailActivated, setIsEmailActivated] = useState(true);
-  const [activationLinkSent, setActivationLinkSent] = useState(false);
-  const [activationEmail, setActivationEmail] = useState(null);
+export const ResetPasswordPage = () => {
+  const { resetPasswordToken } = useParams();
+  const [isLinkSent, setIsLinkSent] = useState(false);
   const [error, setError] = usePageError('');
-  const { login, sendActivation } = useContext(AuthContext);
+  const { resetPassword } = useContext(AuthContext);
 
-  const sendActivationLink = () => {
-    if (!activationEmail) {
-      return;
-    }
+  if (resetPasswordToken) {
+    return <CreateNewPassword resetPasswordToken={resetPasswordToken} />;
+  }
 
-    sendActivation(activationEmail)
-      .then((res) => {
-        console.log(res.message);
-
-        setActivationLinkSent(true);
-      })
-      .catch((err) => {
-        console.log('error', err);
-      });
-  };
-
-  if (activationLinkSent) {
-    return (
-      <section className=''>
-        <h1 className='title'>Check your email</h1>
-        <div className='field'>
-          <p>We have sent you an email with the activation link</p>
-        </div>
-        <button
-          type='button'
-          className='button'
-          onClick={() => {
-            setActivationLinkSent(false);
-            setActivationEmail(null);
-            setIsEmailActivated(true);
-          }}
-        >
-          Back to Login
-        </button>
-      </section>
-    );
+  if (isLinkSent) {
+    return <EmailSentMessage />;
   }
 
   return (
@@ -61,31 +30,32 @@ export const LoginPage = () => {
           password: '',
         }}
         validateOnMount={true}
-        onSubmit={({ email, password }) => {
-          return login({ email, password })
+        onSubmit={({ email }) => {
+          return resetPassword(email)
             .then(() => {
-              navigate('/profile');
+              setIsLinkSent(true);
             })
             .catch((error) => {
               setError(error.response?.data?.message);
 
               const loginError = {
-                activation: 'The account is not activated',
                 password: 'Wrong password',
+                email: 'Wrong password',
               };
 
-              if (
-                error.response?.data?.message.includes(loginError.activation)
-              ) {
-                setIsEmailActivated(false);
-                setActivationEmail(email);
+              if (error.response?.data?.message.includes(loginError.email)) {
+                // setIsWrongPassword(true);
+                console.log('email doesn`t exists');
               }
             });
         }}
       >
         {({ touched, errors, isSubmitting }) => (
           <Form className='box'>
-            <h1 className='title'>Log in</h1>
+            <h1 className='title'>Reset Password</h1>
+            <p className='subtitle'>
+              Enter your email and we`ll send you a link to reset your password
+            </p>
             <div className='field'>
               <label htmlFor='email' className='label'>
                 Email
@@ -118,7 +88,8 @@ export const LoginPage = () => {
                 <p className='help is-danger'>{errors.email}</p>
               )}
             </div>
-            <div className='field'>
+
+            {/* <div className='field'>
               <label htmlFor='password' className='label'>
                 Password
               </label>
@@ -151,34 +122,19 @@ export const LoginPage = () => {
               ) : (
                 <p className='help'>At least 6 characters</p>
               )}
-            </div>
-            <div className='field'>
-              <Link to='/reset-password'>Forgot password?</Link>
-            </div>
+            </div> */}
+
             <div className='field'>
               <button
                 type='submit'
                 className={cn('button is-success has-text-weight-bold mr-2', {
                   'is-loading': isSubmitting,
                 })}
-                disabled={isSubmitting || errors.email || errors.password}
+                disabled={isSubmitting || errors.email}
               >
-                Log in
+                Send link to email
               </button>
-
-              {!isEmailActivated && (
-                <button
-                  type='button'
-                  className={cn('button is-link has-text-weight-bold', {
-                    // 'is-loading': isSubmitting,
-                  })}
-                  onClick={sendActivationLink}
-                >
-                  Activate Account
-                </button>
-              )}
             </div>
-            Do not have an account? <Link to='/sign-up'>Sign up</Link>
           </Form>
         )}
       </Formik>

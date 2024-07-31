@@ -38,5 +38,3 @@ async function onResponseError(error) {
     throw error;
   }
 }
-
-

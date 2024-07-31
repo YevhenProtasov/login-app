@@ -8,11 +8,11 @@ export const RequireAuth = ({ children }) => {
   const location = useLocation();
 
   if (!isChecked) {
-    return <Loader />
+    return <Loader />;
   }
 
   if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to='/login' state={{ from: location }} replace />;
   }
 
   return children || <Outlet />;

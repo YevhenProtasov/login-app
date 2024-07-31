@@ -3,18 +3,20 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AuthContext } from '../components/AuthContext.jsx';
 import { Loader } from '../components/Loader.jsx';
 
-export const AccountActivationPage = () => {
+export const ChangeEmailPage = () => {
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
-
-  const { activate } = useContext(AuthContext);
-  const { activationToken } = useParams();
+  const { checkAuth, saveNewEmail } = useContext(AuthContext);
+  const { confirmNewEmailToken } = useParams();
 
   useEffect(() => {
-    activate(activationToken)
+    saveNewEmail(confirmNewEmailToken)
+      .then(() => {
+        checkAuth();
+      })
       .catch((error) => {
-        setError(error.response?.data?.message || `Wrong activation link`);
+        setError(error.response?.data?.message || `Wrong confirmation link`);
       })
       .finally(() => {
         setDone(true);
@@ -34,13 +36,13 @@ export const AccountActivationPage = () => {
 
   return (
     <>
-      <h1 className='title'>Account activation</h1>
+      <h1 className='title'>Сonfirmation of new email</h1>
 
       {error ? (
         <p className='notification is-danger is-light'>{error}</p>
       ) : (
         <p className='notification is-success is-light'>
-          Your account is now active
+          Your email has been successfully changed
         </p>
       )}
     </>

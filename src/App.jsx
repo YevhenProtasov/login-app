@@ -1,5 +1,12 @@
 import React, { useContext, useEffect } from 'react';
-import { Routes, Route, Link, useNavigate, NavLink } from 'react-router-dom';
+import {
+  Routes,
+  Route,
+  Link,
+  useNavigate,
+  NavLink,
+  useLocation,
+} from 'react-router-dom';
 
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import './styles.scss';
@@ -13,8 +20,13 @@ import { UsersPage } from './pages/UsersPage';
 import { Loader } from './components/Loader.jsx';
 import { HomePage } from './pages/HomePage.jsx';
 import { usePageError } from './hooks/usePageError.js';
+import { ProfilePage } from './pages/ProfilePage.jsx';
+import { ResetPasswordPage } from './pages/ResetPasswordPage.jsx';
+import { NotFoundPage } from './pages/NotFoundPage.jsx';
+import { ChangeEmailPage } from './pages/ChangeEmailPage.jsx';
 
 function App() {
+  const location = useLocation();
   const navigate = useNavigate();
   const [error, setError] = usePageError();
   const { isChecked, user, logout, checkAuth } = useContext(AuthContext);
@@ -24,87 +36,108 @@ function App() {
   }, []);
 
   if (!isChecked) {
-    return <Loader />
+    return <Loader />;
   }
 
-  return <>
-    <nav className="navbar has-shadow" role="navigation" aria-label="main navigation">
-      <div className="navbar-start">
-        <NavLink to="/" className="navbar-item">
-          Home
-        </NavLink>
+  return (
+    <>
+      <nav
+        className='navbar has-shadow'
+        role='navigation'
+        aria-label='main navigation'
+      >
+        <div className='navbar-start'>
+          <NavLink to='/' className='navbar-item'>
+            Home
+          </NavLink>
 
-        <NavLink to="/users" className="navbar-item">
-          Users
-        </NavLink>
-      </div>
+          {user && (
+            <>
+              <NavLink to='/profile' className='navbar-item'>
+                Profile
+              </NavLink>
 
-      <div className="navbar-end">
-        <div className="navbar-item">
-          <div className="buttons">
-            {user ? (
-              <button
-                className="button is-light has-text-weight-bold"
-                onClick={() => {
-                  logout()
-                    .then(() => {
-                      navigate('/');
-                    })
-                    .catch((error) => {
-                      setError(error.response?.data?.message);
-                    });
-                }}
-              >
-                Log out
-              </button>
-            ) : (
-              <>
-                <Link to="/sign-up" className="button is-light has-text-weight-bold">
-                  Sign up
-                </Link>
+              <NavLink to='/users' className='navbar-item'>
+                Users
+              </NavLink>
+            </>
+          )}
+        </div>
 
-                <Link to="/login" className="button is-success has-text-weight-bold">
-                  Log in
-                </Link>
-              </>
-            )}
+        <div className='navbar-end'>
+          <div className='navbar-item'>
+            <div className='buttons'>
+              {user ? (
+                <button
+                  className='button is-light has-text-weight-bold'
+                  onClick={() => {
+                    logout()
+                      .then(() => {
+                        navigate('/login');
+                      })
+                      .catch((error) => {
+                        setError(error.response?.data?.message);
+                      });
+                  }}
+                >
+                  Log out
+                </button>
+              ) : (
+                <>
+                  <Link
+                    to='/sign-up'
+                    className='button is-light has-text-weight-bold'
+                  >
+                    Sign up
+                  </Link>
+
+                  <Link
+                    to='/login'
+                    className='button is-success has-text-weight-bold'
+                    disabled={location.pathname === '/login'}
+                  >
+                    Log in
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
 
-    <main>
-      <section className="section">
-        <Routes>
-          <Route
-            path="/"
-            element={<HomePage />}
-          />
-          <Route
-            path="sign-up"
-            element={<RegistrationPage />}
-          />
-          <Route
-            path="activate/:activationToken"
-            element={<AccountActivationPage />}
-          />
-          <Route
-            path="login"
-            element={<LoginPage />}
-          />
-
-          <Route path="/" element={<RequireAuth />}>
+      <main>
+        <section className='section'>
+          <Routes>
+            <Route path='/' element={<HomePage />} />
+            <Route path='sign-up' element={<RegistrationPage />} />
             <Route
-              path="users"
-              element={<UsersPage />}
+              path='activate/:activationToken'
+              element={<AccountActivationPage />}
             />
-          </Route>
-        </Routes>
-      </section>
+            <Route path='login' element={<LoginPage />} />
+            <Route path='reset-password' element={<ResetPasswordPage />} />
+            <Route
+              path='reset-password/:resetPasswordToken'
+              element={<ResetPasswordPage />}
+            />
+            <Route
+              path='/change-email/:confirmNewEmailToken'
+              element={<ChangeEmailPage />}
+            />
 
-      {error && <p className="notification is-danger is-light">{error}</p>}
-    </main>
-  </>
+            <Route path='/' element={<RequireAuth />}>
+              <Route path='users' element={<UsersPage />} />
+              <Route path='profile' element={<ProfilePage />} />
+            </Route>
+
+            <Route path='*' element={<NotFoundPage />} />
+          </Routes>
+        </section>
+
+        {error && <p className='notification is-danger is-light'>{error}</p>}
+      </main>
+    </>
+  );
 }
 
 export default App;

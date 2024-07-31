@@ -1,21 +1,21 @@
 import { useEffect, useState } from 'react';
 
-export const usePageError = (initialError) => {
-  const [error, setError] = useState(initialError);
+export const usePageSuccess = (initialSuccess) => {
+  const [success, setSuccess] = useState(initialSuccess);
 
   useEffect(() => {
-    if (!error) {
+    if (!success) {
       return;
     }
 
     const timerId = setTimeout(() => {
-      setError('');
+      setSuccess('');
     }, 5000);
 
     return () => {
       clearTimeout(timerId);
     };
-  }, [error]);
+  }, [success]);
 
-  return [error, setError];
+  return [success, setSuccess];
 };

@@ -2,31 +2,11 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Formik, Form, Field } from 'formik';
 import cn from 'classnames';
-
 import { authService } from '../services/authService.js';
 import { usePageError } from '../hooks/usePageError.js';
-
-function validateEmail(value) {
-  if (!value) {
-    return 'Email is required';
-  }
-
-  const emailPattern = /^[\w.+-]+@([\w-]+\.){1,3}[\w-]{2,}$/;
-
-  if (!emailPattern.test(value)) {
-    return 'Email is not valid';
-  }
-}
-
-const validatePassword = (value) => {
-  if (!value) {
-    return 'Password is required';
-  }
-
-  if (value.length < 6) {
-    return 'At least 6 characters';
-  }
-};
+import validateEmail from '../utils/validation/validateEmail.js';
+import validatePassword from '../utils/validation/validatePassword.js';
+import validateName from '../utils/validation/validateName.js';
 
 export const RegistrationPage = () => {
   const [error, setError] = usePageError('');
@@ -34,8 +14,8 @@ export const RegistrationPage = () => {
 
   if (registered) {
     return (
-      <section className="">
-        <h1 className="title">Check your email</h1>
+      <section className=''>
+        <h1 className='title'>Check your email</h1>
         <p>We have sent you an email with the activation link</p>
       </section>
     );
@@ -45,14 +25,16 @@ export const RegistrationPage = () => {
     <>
       <Formik
         initialValues={{
+          userName: '',
           email: '',
           password: '',
         }}
         validateOnMount={true}
-        onSubmit={({ email, password }, formikHelpers) => {
+        onSubmit={({ userName, email, password }, formikHelpers) => {
           formikHelpers.setSubmitting(true);
 
-          authService.register({ email, password })
+          authService
+            .register({ userName, email, password })
             .then(() => {
               setRegistered(true);
             })
@@ -76,83 +58,113 @@ export const RegistrationPage = () => {
             })
             .finally(() => {
               formikHelpers.setSubmitting(false);
-            })
-          }
-        }
+            });
+        }}
       >
         {({ touched, errors, isSubmitting }) => (
-          <Form className="box">
-            <h1 className="title">Sign up</h1>
+          <Form className='box'>
+            <h1 className='title'>Sign up</h1>
+            <div className='field'>
+              <label htmlFor='userName' className='label'>
+                Name
+              </label>
 
-            <div className="field">
-              <label htmlFor="email" className="label">Email</label>
+              <div className='control has-icons-left has-icons-right'>
+                <Field
+                  validate={validateName}
+                  name='userName'
+                  type='text'
+                  id='userName'
+                  placeholder='Your name'
+                  className={cn('input', {
+                    'is-danger': touched.userName && errors.userName,
+                  })}
+                />
 
-              <div className="control has-icons-left has-icons-right">
+                <span className='icon is-small is-left'>
+                  <i className='fa fa-user'></i>
+                </span>
+
+                {touched.userName && errors.userName && (
+                  <span className='icon is-small is-right has-text-danger'>
+                    <i className='fas fa-exclamation-triangle'></i>
+                  </span>
+                )}
+              </div>
+
+              {touched.userName && errors.userName && (
+                <p className='help is-danger'>{errors.userName}</p>
+              )}
+            </div>
+            <div className='field'>
+              <label htmlFor='email' className='label'>
+                Email
+              </label>
+
+              <div className='control has-icons-left has-icons-right'>
                 <Field
                   validate={validateEmail}
-                  name="email"
-                  type="email"
-                  id="email"
-                  placeholder="e.g. bobsmith@gmail.com"
+                  name='email'
+                  type='email'
+                  id='email'
+                  placeholder='e.g. bobsmith@gmail.com'
                   className={cn('input', {
                     'is-danger': touched.email && errors.email,
                   })}
                 />
 
-                <span className="icon is-small is-left">
-                  <i className="fa fa-envelope"></i>
+                <span className='icon is-small is-left'>
+                  <i className='fa fa-envelope'></i>
                 </span>
 
                 {touched.email && errors.email && (
-                  <span className="icon is-small is-right has-text-danger">
-                    <i className="fas fa-exclamation-triangle"></i>
+                  <span className='icon is-small is-right has-text-danger'>
+                    <i className='fas fa-exclamation-triangle'></i>
                   </span>
                 )}
               </div>
 
               {touched.email && errors.email && (
-                <p className="help is-danger">{errors.email}</p>
+                <p className='help is-danger'>{errors.email}</p>
               )}
             </div>
-
-            <div className="field">
-              <label htmlFor="password" className="label">
+            <div className='field'>
+              <label htmlFor='password' className='label'>
                 Password
               </label>
 
-              <div className="control has-icons-left has-icons-right">
+              <div className='control has-icons-left has-icons-right'>
                 <Field
                   validate={validatePassword}
-                  name="password"
-                  type="password"
-                  id="password"
-                  placeholder="*******"
+                  name='password'
+                  type='password'
+                  id='password'
+                  placeholder='*******'
                   className={cn('input', {
                     'is-danger': touched.password && errors.password,
                   })}
                 />
 
-                <span className="icon is-small is-left">
-                  <i className="fa fa-lock"></i>
+                <span className='icon is-small is-left'>
+                  <i className='fa fa-lock'></i>
                 </span>
 
                 {touched.password && errors.password && (
-                  <span className="icon is-small is-right has-text-danger">
-                    <i className="fas fa-exclamation-triangle"></i>
+                  <span className='icon is-small is-right has-text-danger'>
+                    <i className='fas fa-exclamation-triangle'></i>
                   </span>
                 )}
               </div>
 
               {touched.password && errors.password ? (
-                <p className="help is-danger">{errors.password}</p>
+                <p className='help is-danger'>{errors.password}</p>
               ) : (
-                <p className="help">At least 6 characters</p>
+                <p className='help'>At least 6 characters</p>
               )}
             </div>
-
-            <div className="field">
+            <div className='field'>
               <button
-                type="submit"
+                type='submit'
                 className={cn('button is-success has-text-weight-bold', {
                   'is-loading': isSubmitting,
                 })}
@@ -161,15 +173,12 @@ export const RegistrationPage = () => {
                 Sign up
               </button>
             </div>
-
-            Already have an account?
-            {' '}
-            <Link to="/login">Log in</Link>
+            Already have an account? <Link to='/login'>Log in</Link>
           </Form>
         )}
       </Formik>
 
-      {error && <p className="notification is-danger is-light">{error}</p>}
+      {error && <p className='notification is-danger is-light'>{error}</p>}
     </>
   );
 };
